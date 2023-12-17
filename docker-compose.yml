@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: ${DB_CONTAINER_NAME}
+    image: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  redis:
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: redis:latest
+  app:
+    container_name: ${APP_CONTAINER_NAME}
+    build: .
+    ports:
+      - ${PORT}:8080
+    environment:
+      - REDIS_CONTAINER_NAME=${REDIS_CONTAINER_NAME}
+      - DB_CONTAINER_NAME=${DB_CONTAINER_NAME}
+      - TEST_DB_CONTAINER_NAME=$[TEST_DB_CONTAINER_NAME]
+      - APP_CONTAINER_NAME=${APP_CONTAINER_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+
